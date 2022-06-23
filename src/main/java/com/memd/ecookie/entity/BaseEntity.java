@@ -14,37 +14,37 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
-	private static final long serialVersionUID = -1594524024291353952L;
-	
-	@Id
-	@Column(name = "id", columnDefinition="int(32)")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    private static final long serialVersionUID = -1594524024291353952L;
+
+    @Id
+    @Column(name = "id", columnDefinition = "int(32)")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-	
-	@Transient
-	protected Set<String> modifiedSet = new HashSet<>();
 
-	public Long getId() {
-		return id;
-	}
+    @Transient
+    protected Set<String> modifiedSet = new HashSet<>();
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-	
-	@JsonIgnore
-	public Set<String> getModifiedSet() {
-		return this.modifiedSet;
-	}
-	
-	@JsonIgnore
-	public boolean isModified(String name) {
-		if(this.modifiedSet.isEmpty()) return true;
-		
-		return this.modifiedSet.contains(name);
-	}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @JsonIgnore
+    public Set<String> getModifiedSet() {
+        return this.modifiedSet;
+    }
+
+    @JsonIgnore
+    public boolean isModified(String name) {
+        if (this.modifiedSet.isEmpty())
+            return true;
+
+        return this.modifiedSet.contains(name);
+    }
 }
-

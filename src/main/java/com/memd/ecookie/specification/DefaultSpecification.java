@@ -19,108 +19,109 @@ import com.memd.ecookie.common.SortParam;
 import com.memd.ecookie.util.EntityUtil;
 
 public class DefaultSpecification<T> implements Specification<T> {
-	private static final long serialVersionUID = -7922436008148225975L;
-	
-	protected String searchTermPropertyName;
-	protected String searchTerm;
-	protected List<SortParam> sortParams;
-	protected List<SearchParam> searchParams;
-	protected Set<String> specialHandledSearchSet = new HashSet<>();
-	protected Set<String> specialHandledSortSet = new HashSet<>();
-	
-	protected List<Predicate> conditions = new ArrayList<>();
-	protected List<Order> orders = new ArrayList<>();
-	
-	public DefaultSpecification() {
-	}
-	
-	public DefaultSpecification(String searchTermPropertyName, String searchTerm,
-			List<SortParam> sortParams, List<SearchParam> searchParams) {
-		this.searchTermPropertyName = searchTermPropertyName;
-		this.searchTerm = searchTerm;
-		this.sortParams = sortParams;
-		this.searchParams = searchParams;
-	}
+    private static final long serialVersionUID = -7922436008148225975L;
 
-	@Override
-	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-		collectSearchTermPredicate(root, query, criteriaBuilder, conditions);
-		collectSearchParamsPredicates(root, query, criteriaBuilder, conditions);
-		
-		if (!orders.isEmpty()) {
-			query.orderBy(orders);
-		}
-		
-		return criteriaBuilder.and(conditions.toArray(new Predicate[conditions.size()]));
-	}
+    protected String searchTermPropertyName;
+    protected String searchTerm;
+    protected List<SortParam> sortParams;
+    protected List<SearchParam> searchParams;
+    protected Set<String> specialHandledSearchSet = new HashSet<>();
+    protected Set<String> specialHandledSortSet = new HashSet<>();
 
-	public void addExtraPredicate(Predicate predicate) {
-		if (predicate != null) {
-			conditions.add(predicate);
-		}
-	}
+    protected List<Predicate> conditions = new ArrayList<>();
+    protected List<Order> orders = new ArrayList<>();
 
-	public void addExtraOrder(Order order) {
-		if (order != null) {
-			orders.add(order);
-		}
-	}
+    public DefaultSpecification() {
+    }
 
-	public String getSearchTermPropertyName() {
-		return searchTermPropertyName;
-	}
+    public DefaultSpecification(String searchTermPropertyName, String searchTerm, List<SortParam> sortParams,
+            List<SearchParam> searchParams) {
+        this.searchTermPropertyName = searchTermPropertyName;
+        this.searchTerm = searchTerm;
+        this.sortParams = sortParams;
+        this.searchParams = searchParams;
+    }
 
-	public void setSearchTermPropertyName(String searchTermPropertyName) {
-		this.searchTermPropertyName = searchTermPropertyName;
-	}
+    @Override
+    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        collectSearchTermPredicate(root, query, criteriaBuilder, conditions);
+        collectSearchParamsPredicates(root, query, criteriaBuilder, conditions);
 
-	public Set<String> getSpecialHandledSearchSet() {
-		return specialHandledSearchSet;
-	}
+        if (!orders.isEmpty()) {
+            query.orderBy(orders);
+        }
 
+        return criteriaBuilder.and(conditions.toArray(new Predicate[conditions.size()]));
+    }
 
-	public Set<String> getSpecialHandledSortSet() {
-		return specialHandledSortSet;
-	}
+    public void addExtraPredicate(Predicate predicate) {
+        if (predicate != null) {
+            conditions.add(predicate);
+        }
+    }
 
-	public String getSearchTerm() {
-		return searchTerm;
-	}
+    public void addExtraOrder(Order order) {
+        if (order != null) {
+            orders.add(order);
+        }
+    }
 
-	public void setSearchTerm(String searchTerm) {
-		this.searchTerm = searchTerm;
-	}
+    public String getSearchTermPropertyName() {
+        return searchTermPropertyName;
+    }
 
-	public List<SortParam> getSortParams() {
-		return sortParams;
-	}
+    public void setSearchTermPropertyName(String searchTermPropertyName) {
+        this.searchTermPropertyName = searchTermPropertyName;
+    }
 
-	public void setSortParams(List<SortParam> sortParams) {
-		this.sortParams = sortParams;
-	}
+    public Set<String> getSpecialHandledSearchSet() {
+        return specialHandledSearchSet;
+    }
 
-	public List<SearchParam> getSearchParams() {
-		return searchParams;
-	}
+    public Set<String> getSpecialHandledSortSet() {
+        return specialHandledSortSet;
+    }
 
-	public void setSearchParams(List<SearchParam> searchParams) {
-		this.searchParams = searchParams;
-	}
+    public String getSearchTerm() {
+        return searchTerm;
+    }
 
-	protected void collectSearchParamsPredicates(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder, List<Predicate> conditions) {		
-   	    List<Predicate> conditions1 = EntityUtil.buildManyPredicates(criteriaBuilder, root, searchParams, specialHandledSearchSet);
-   	    if (conditions1 != null) {
-   	    	conditions.addAll(conditions1);
-   	    }
-		
-	}
+    public void setSearchTerm(String searchTerm) {
+        this.searchTerm = searchTerm;
+    }
 
-	protected void collectSearchTermPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder,
-			List<Predicate> conditions) {
-		if (StringUtils.isAnyBlank(searchTermPropertyName, searchTerm)) {
-			return;
-		}
-		
-		conditions.add(criteriaBuilder.like(root.get(searchTermPropertyName), "%"+searchTerm+"%"));
-	}
+    public List<SortParam> getSortParams() {
+        return sortParams;
+    }
+
+    public void setSortParams(List<SortParam> sortParams) {
+        this.sortParams = sortParams;
+    }
+
+    public List<SearchParam> getSearchParams() {
+        return searchParams;
+    }
+
+    public void setSearchParams(List<SearchParam> searchParams) {
+        this.searchParams = searchParams;
+    }
+
+    protected void collectSearchParamsPredicates(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder,
+            List<Predicate> conditions) {
+        List<Predicate> conditions1 = EntityUtil.buildManyPredicates(criteriaBuilder, root, searchParams,
+                specialHandledSearchSet);
+        if (conditions1 != null) {
+            conditions.addAll(conditions1);
+        }
+
+    }
+
+    protected void collectSearchTermPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder,
+            List<Predicate> conditions) {
+        if (StringUtils.isAnyBlank(searchTermPropertyName, searchTerm)) {
+            return;
+        }
+
+        conditions.add(criteriaBuilder.like(root.get(searchTermPropertyName), "%" + searchTerm + "%"));
+    }
 }

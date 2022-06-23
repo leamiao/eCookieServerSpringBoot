@@ -7,35 +7,35 @@ public class JsonResponseModel<E> {
     private E data;
 
     public int getTotal() {
-		return total;
-	}
+        return total;
+    }
 
-	public void setTotal(int total) {
-		this.total = total;
-	}
-	
-	public boolean isSuccess() {
-		return success;
-	}
+    public void setTotal(int total) {
+        this.total = total;
+    }
 
-	public void setSuccess(boolean success) {
-		this.success = success;
-	}
+    public boolean isSuccess() {
+        return success;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public E getData() {
-		return data;
-	}
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-	public void setData(E data) {
-		this.data = data;
-	}
+    public E getData() {
+        return data;
+    }
+
+    public void setData(E data) {
+        this.data = data;
+    }
 
 }

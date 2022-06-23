@@ -7,8 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.memd.ecookie.entity.CategoryEntity;
 
 @Transactional
-public interface CategoryRepository extends JpaRepository<CategoryEntity, Long>, JpaSpecificationExecutor<CategoryEntity> {
+public interface CategoryRepository
+        extends JpaRepository<CategoryEntity, Long>, JpaSpecificationExecutor<CategoryEntity> {
 
-	CategoryEntity findByName(String name);
+    CategoryEntity findByName(String name);
 
 }

@@ -6,8 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.memd.ecookie.entity.ProductEntity;
 
-
 @Transactional
-public interface ProductRepository  extends JpaRepository<ProductEntity, Long>, JpaSpecificationExecutor<ProductEntity> {
-	ProductEntity findByName(String name);
+public interface ProductRepository extends JpaRepository<ProductEntity, Long>, JpaSpecificationExecutor<ProductEntity> {
+    ProductEntity findByName(String name);
 }

@@ -27,324 +27,317 @@ import com.memd.ecookie.web.util.I18nManager;
 import com.memd.ecookie.web.util.OffsetBasedPageRequest;
 
 public class BaseEntityController<E extends BaseEntity> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BaseEntityController.class);
-	
-	@Autowired
-	protected I18nManager i18nManager;
-		
-	@GetMapping(produces = { "application/json;charset=UTF-8" })
-	public ResponseEntity<JsonResponseModel<List<E>>> list(HttpServletRequest request) {
-		JsonResponseModel<List<E>> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
-		
-		try {			
-			int startIndex = 0;
-			int limit = -9999;
-			int total = 0;
-			
-			List<E> list = new ArrayList<>();;
-			if (request.getParameter(Constants.START) != null) {
-				startIndex = Integer.parseInt(request.getParameter(Constants.START));
-			}
-			if (request.getParameter(Constants.LIMIT) != null) {
-				limit = Integer.parseInt(request.getParameter(Constants.LIMIT));
-			}
-			
-			if (limit > 0) {
-				Pageable pageRequest = null;
-				if (request.getParameter(Constants.SORT) != null) {
-					pageRequest = new OffsetBasedPageRequest(startIndex, limit, Sort.unsorted());
-				} else {
-					pageRequest = new OffsetBasedPageRequest(startIndex, limit);
-				}
-				
-				Page<E> page = this.searchEntities(request, pageRequest);
-				if (page != null) {
-					list = page.getContent();
-					total = (int)page.getTotalElements();
-				}
-			} else {
-				list = this.searchEntities(request);
-			}
-			
-			this.cleanUpEntities(list);
-			
-			model.setData(list);
-			model.setTotal(total);
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
-	}
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseEntityController.class);
 
-	@PostMapping(value = "/create", produces = { "application/json;charset=UTF-8" })
-	public ResponseEntity<JsonResponseModel<E>> create(@RequestBody E entity, HttpServletRequest request) {
-		JsonResponseModel<E> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
+    @Autowired
+    protected I18nManager i18nManager;
 
-		try {			
-			if(entity != null) {
-				E createdEntity = this.createEntity(entity);
-				this.cleanUpEntity(createdEntity);
-				model.setData(createdEntity);
-			}
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
-	}
+    @GetMapping(produces = { "application/json;charset=UTF-8" })
+    public ResponseEntity<JsonResponseModel<List<E>>> list(HttpServletRequest request) {
+        JsonResponseModel<List<E>> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
 
-	@PostMapping(value = "/update", produces = { "application/json;charset=UTF-8" })
-	public ResponseEntity<JsonResponseModel<E>> update(@RequestBody E entity, HttpServletRequest request) {
-		JsonResponseModel<E> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
-		
-		try {			
-			if(entity != null) {
-				E savedEntity = this.saveEntitiy(entity);
-				this.cleanUpEntity(savedEntity);
-				model.setData(savedEntity);
-			}
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
-	}
+        try {
+            int startIndex = 0;
+            int limit = -9999;
+            int total = 0;
 
-	@DeleteMapping(value = "/{entityId}", produces = { "application/json;charset=UTF-8" })
-	public ResponseEntity<JsonResponseModel<String>> delete(
-		@PathVariable(name="entityId") Long entityId,
-		HttpServletRequest request) {
-		JsonResponseModel<String> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
+            List<E> list = new ArrayList<>();
+            ;
+            if (request.getParameter(Constants.START) != null) {
+                startIndex = Integer.parseInt(request.getParameter(Constants.START));
+            }
+            if (request.getParameter(Constants.LIMIT) != null) {
+                limit = Integer.parseInt(request.getParameter(Constants.LIMIT));
+            }
 
-		try {			
-			if(entityId != null) {
-				this.deleteEntityById(entityId);
-			}
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
-	}
-	
-    @GetMapping(path="/{entityId}")
-    public ResponseEntity<JsonResponseModel<E>> get(
-    	@PathVariable(name="entityId") Long entityId,
-    	HttpServletRequest request) {
-		JsonResponseModel<E> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
-		try {		
-			E entity = this.getEntityById(entityId);
-			this.cleanUpEntity(entity);
-			model.setData(entity);
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
+            if (limit > 0) {
+                Pageable pageRequest = null;
+                if (request.getParameter(Constants.SORT) != null) {
+                    pageRequest = new OffsetBasedPageRequest(startIndex, limit, Sort.unsorted());
+                } else {
+                    pageRequest = new OffsetBasedPageRequest(startIndex, limit);
+                }
+
+                Page<E> page = this.searchEntities(request, pageRequest);
+                if (page != null) {
+                    list = page.getContent();
+                    total = (int) page.getTotalElements();
+                }
+            } else {
+                list = this.searchEntities(request);
+            }
+
+            this.cleanUpEntities(list);
+
+            model.setData(list);
+            model.setTotal(total);
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
     }
 
-	@PatchMapping(path="/{entityId}") 
-    public ResponseEntity<JsonResponseModel<E>> patch (
-    	@PathVariable(name="entityId") Long entityId, 
-    	@RequestBody E entity, 
-    	HttpServletRequest request) {
-		JsonResponseModel<E> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
-		try {		
-			E saved = this.patchEntity(entityId, entity);
-			this.cleanUpEntity(saved);
-			model.setData(saved);
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
+    @PostMapping(value = "/create", produces = { "application/json;charset=UTF-8" })
+    public ResponseEntity<JsonResponseModel<E>> create(@RequestBody E entity, HttpServletRequest request) {
+        JsonResponseModel<E> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
+
+        try {
+            if (entity != null) {
+                E createdEntity = this.createEntity(entity);
+                this.cleanUpEntity(createdEntity);
+                model.setData(createdEntity);
+            }
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
     }
 
-	@PutMapping(path="/{entityId}") 
-    public ResponseEntity<JsonResponseModel<E>> put(
-    	@PathVariable(name="entityId") Long entityId,
-    	@RequestBody E entity, 
-    	HttpServletRequest request) {
-		JsonResponseModel<E> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
+    @PostMapping(value = "/update", produces = { "application/json;charset=UTF-8" })
+    public ResponseEntity<JsonResponseModel<E>> update(@RequestBody E entity, HttpServletRequest request) {
+        JsonResponseModel<E> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
 
-		try {		
-			E saved = this.putEntity(entityId, entity);
-			this.cleanUpEntity(saved);
-			model.setData(saved);
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
+        try {
+            if (entity != null) {
+                E savedEntity = this.saveEntitiy(entity);
+                this.cleanUpEntity(savedEntity);
+                model.setData(savedEntity);
+            }
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
     }
-	
+
+    @DeleteMapping(value = "/{entityId}", produces = { "application/json;charset=UTF-8" })
+    public ResponseEntity<JsonResponseModel<String>> delete(@PathVariable(name = "entityId") Long entityId,
+            HttpServletRequest request) {
+        JsonResponseModel<String> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
+
+        try {
+            if (entityId != null) {
+                this.deleteEntityById(entityId);
+            }
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
+    }
+
+    @GetMapping(path = "/{entityId}")
+    public ResponseEntity<JsonResponseModel<E>> get(@PathVariable(name = "entityId") Long entityId,
+            HttpServletRequest request) {
+        JsonResponseModel<E> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
+        try {
+            E entity = this.getEntityById(entityId);
+            this.cleanUpEntity(entity);
+            model.setData(entity);
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
+    }
+
+    @PatchMapping(path = "/{entityId}")
+    public ResponseEntity<JsonResponseModel<E>> patch(@PathVariable(name = "entityId") Long entityId,
+            @RequestBody E entity, HttpServletRequest request) {
+        JsonResponseModel<E> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
+        try {
+            E saved = this.patchEntity(entityId, entity);
+            this.cleanUpEntity(saved);
+            model.setData(saved);
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
+    }
+
+    @PutMapping(path = "/{entityId}")
+    public ResponseEntity<JsonResponseModel<E>> put(@PathVariable(name = "entityId") Long entityId,
+            @RequestBody E entity, HttpServletRequest request) {
+        JsonResponseModel<E> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
+
+        try {
+            E saved = this.putEntity(entityId, entity);
+            this.cleanUpEntity(saved);
+            model.setData(saved);
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
+    }
+
     @PostMapping()
-    public ResponseEntity<JsonResponseModel<List<E>>> saveList(
-    	@RequestBody List<E> entities, 
-    	HttpServletRequest request) {
-		JsonResponseModel<List<E>> model = new JsonResponseModel<>();
-		String message = null;
-		HttpStatus status = HttpStatus.OK;
+    public ResponseEntity<JsonResponseModel<List<E>>> saveList(@RequestBody List<E> entities,
+            HttpServletRequest request) {
+        JsonResponseModel<List<E>> model = new JsonResponseModel<>();
+        String message = null;
+        HttpStatus status = HttpStatus.OK;
 
-		try {			
-			List<E> saved = this.saveEntities(entities);
-			this.cleanUpEntities(saved);
-			model.setData(saved);
-		} catch(ServiceException e) {			
-			String errorMessage = e.getMessage();
-			message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
-			model.setSuccess(false);
-			LOGGER.error(message, e);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		} catch(Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			message = e.getMessage();
-			model.setSuccess(false);
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
-		}	
-		
-		model.setMessage(message);
-		
-		return new ResponseEntity<>(model, status);
+        try {
+            List<E> saved = this.saveEntities(entities);
+            this.cleanUpEntities(saved);
+            model.setData(saved);
+        } catch (ServiceException e) {
+            String errorMessage = e.getMessage();
+            message = this.i18nManager.getString(request, errorMessage, errorMessage, e.getParams());
+            model.setSuccess(false);
+            LOGGER.error(message, e);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            message = e.getMessage();
+            model.setSuccess(false);
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        model.setMessage(message);
+
+        return new ResponseEntity<>(model, status);
     }
 
-	protected void cleanUpEntities(List<E> list) {
-		if (list != null) {
-			for (E entity : list) {
-				this.cleanUpEntity(entity);
-			}
-		}
-	}
+    protected void cleanUpEntities(List<E> list) {
+        if (list != null) {
+            for (E entity : list) {
+                this.cleanUpEntity(entity);
+            }
+        }
+    }
 
-	protected void cleanUpEntity(E entity) {
-	}
+    protected void cleanUpEntity(E entity) {
+    }
 
-	protected List<E> searchEntities(HttpServletRequest request) {
-		return null;
-	}
+    protected List<E> searchEntities(HttpServletRequest request) {
+        return null;
+    }
 
-	protected Page<E> searchEntities(HttpServletRequest request, Pageable pageRequest) {
-		return null;
-	}
-	
-	protected E createEntity(E entity) {
-		return entity;
-	}
+    protected Page<E> searchEntities(HttpServletRequest request, Pageable pageRequest) {
+        return null;
+    }
 
+    protected E createEntity(E entity) {
+        return entity;
+    }
 
-	protected E saveEntitiy(E entity) {
-		return entity;
-	}
+    protected E saveEntitiy(E entity) {
+        return entity;
+    }
 
-	protected void deleteEntityById(Long entityId) {
-	}
-	
-	protected E getEntityById(Long entityId) {
-		return null;
-	}
-    
-	protected E patchEntity(Long entityId, E entity) {
-		return null;
-	}
-    
-	protected E putEntity(Long entityId, E entity) {
-		return null;
-	}
+    protected void deleteEntityById(Long entityId) {
+    }
 
-	protected List<E> saveEntities(List<E> entities) {
-		return null;
-	}
+    protected E getEntityById(Long entityId) {
+        return null;
+    }
+
+    protected E patchEntity(Long entityId, E entity) {
+        return null;
+    }
+
+    protected E putEntity(Long entityId, E entity) {
+        return null;
+    }
+
+    protected List<E> saveEntities(List<E> entities) {
+        return null;
+    }
 
 }
