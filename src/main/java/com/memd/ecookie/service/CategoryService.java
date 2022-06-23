@@ -107,8 +107,6 @@ public class CategoryService {
                     new Object[] { Constants.PRODUCT_ENTITY, entity.getId() });
         }
 
-        Date currentDate = new Date();
-
         // update
         if (entity.isModified("name")) {
             existed.setName(entity.getName());
