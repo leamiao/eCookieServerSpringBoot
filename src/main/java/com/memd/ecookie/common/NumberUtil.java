@@ -21,11 +21,12 @@ public class NumberUtil {
 	}
 	
 	public static Double parseDouble(String valueStr) {
+		if (StringUtils.isBlank(valueStr)) {
+			return null;
+		}
+		
 		Double value = null;
 		try {
-			if(CommonUtil.isEmpty(valueStr) || CommonUtil.isEmpty(valueStr.trim()) || Constants.NULL.equals(valueStr)) {
-				return null;
-			}
 			value = Double.parseDouble(valueStr);
 			if(value == null || Double.isNaN(value)) {
 				return null;
