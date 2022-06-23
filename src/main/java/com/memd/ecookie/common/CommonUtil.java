@@ -3,6 +3,7 @@ package com.memd.ecookie.common;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -12,13 +13,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CommonUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CommonUtil.class);
-
 	public static Double normalizePercent(Double percent) {
 		if(percent != null) {
 			return percent * 0.01;
@@ -132,9 +128,9 @@ public class CommonUtil {
     	}
         BigDecimal bd = new BigDecimal(Double.toString(input));
         if (input >= 0)
-            bd = bd.setScale(precision, BigDecimal.ROUND_HALF_UP);
+            bd = bd.setScale(precision, RoundingMode.HALF_UP);
         else
-            bd = bd.setScale(precision, BigDecimal.ROUND_HALF_DOWN);
+            bd = bd.setScale(precision, RoundingMode.HALF_DOWN);
 
         return bd.doubleValue();
     }
@@ -144,7 +140,7 @@ public class CommonUtil {
     		return input;
     	}
         BigDecimal bd = new BigDecimal(Double.toString(input));
-        bd = bd.setScale(precision, BigDecimal.ROUND_FLOOR);
+        bd = bd.setScale(precision, RoundingMode.FLOOR);
 
         return bd.doubleValue();
     }
@@ -154,7 +150,7 @@ public class CommonUtil {
     		return input;
     	}
         BigDecimal bd = new BigDecimal(Double.toString(input));
-        bd = bd.setScale(precision, BigDecimal.ROUND_CEILING);
+        bd = bd.setScale(precision, RoundingMode.CEILING);
 
         return bd.doubleValue();
     }
@@ -209,191 +205,6 @@ public class CommonUtil {
 
 		return JsonHelper.getInstance().convertToJson(values);
 	}
-	
-	public static Double[] toDoubleArrayFromString(String valueStr) {
-		if(valueStr == null) {
-			return null;
-		}
-		
-//		return JsonHelper.getInstance().convertFromJson(valueStr, Double[].class);
-		valueStr = valueStr.replace("[", "");
-		valueStr = valueStr.replace("]", "");
-		String[] tmpValues = valueStr.split(",");
-		if(tmpValues != null) {
-			Double[] values = new Double[tmpValues.length];
-			for(int i=0; i<tmpValues.length; i++) {
-				String b = CommonUtil.trim(tmpValues[i]);
-				if(b.contains("\"")) {
-					b = b.replace("\"", "");
-				}
-				if(isNumber(b)) {
-					values[i] = Double.parseDouble(b);
-				}
-			}
-			
-			return values;
-		}
-		return null; 
-	}	
-	
-	public static String toStringFromStringArray(String[] values) {
-		if(values == null) {
-			return null;
-		}
-		/* 
-		StringBuilder sb = new StringBuilder();
-		for(int i=0; i<values.length; i++) {
-			if(i > 0) {
-				sb.append(Constants.COMMA);
-			}
-			Double value = values[i];
-			if(value != null) {
-				sb.append(value);
-			}
-		}
-		
-		return sb.toString(); */
-		return JsonHelper.getInstance().convertToJson(values);
-	}
-	
-	public static String[] toStringArrayFromString(String valueStr) {
-		if(valueStr == null) {
-			return null;
-		}
-		
-		valueStr = valueStr.replace("[", "");
-		valueStr = valueStr.replace("]", "");
-		String[] tmpValues = valueStr.split(",");
-		if(tmpValues != null) {
-			String[] values = new String[tmpValues.length];
-			for(int i=0; i<tmpValues.length; i++) {
-				String b = CommonUtil.trim(tmpValues[i]);
-				if(b.length() > 0) {
-					values[i] = b;
-				}
-			}
-			
-			return values;
-		}
-		return null; 
-	}
-	
-	private static boolean isNumber(final String str) {
-        if (StringUtils.isBlank(str)) {
-            return false;
-        }
-        final char[] chars = str.toCharArray();
-        int sz = chars.length;
-        boolean hasExp = false;
-        boolean hasDecPoint = false;
-        boolean allowSigns = false;
-        boolean foundDigit = false;
-        // deal with any possible sign up front
-        final int start = (chars[0] == '-') ? 1 : 0;
-        if (sz > start + 1 && chars[start] == '0') { // leading 0
-            if(chars[start + 1] != '.') {
-            	if (
-                        (chars[start + 1] == 'x') || 
-                        (chars[start + 1] == 'X') 
-                   ) { // leading 0x/0X
-                       int i = start + 2;
-                       if (i == sz) {
-                           return false; // str == "0x"
-                       }
-                       // checking hex (it can't be anything else)
-                       for (; i < chars.length; i++) {
-                           if ((chars[i] < '0' || chars[i] > '9')
-                               && (chars[i] < 'a' || chars[i] > 'f')
-                               && (chars[i] < 'A' || chars[i] > 'F')) {
-                               return false;
-                           }
-                       }
-                       return true;
-                  } else { // leading 0, but not hex, must be octal
-                      int i = start + 1;
-                      for (; i < chars.length; i++) {
-                          if (chars[i] < '0' || chars[i] > '7') {
-                              return false;
-                          }
-                      }
-                      return true;               
-                  }
-            }        	
-        }
-        sz--; // don't want to loop to the last char, check it afterwords
-              // for type qualifiers
-        int i = start;
-        // loop to the next to last char or to the last char if we need another digit to
-        // make a valid number (e.g. chars[0..5] = "1234E")
-        while (i < sz || (i < sz + 1 && allowSigns && !foundDigit)) {
-            if (chars[i] >= '0' && chars[i] <= '9') {
-                foundDigit = true;
-                allowSigns = false;
-
-            } else if (chars[i] == '.') {
-                if (hasDecPoint || hasExp) {
-                    // two decimal points or dec in exponent   
-                    return false;
-                }
-                hasDecPoint = true;
-            } else if (chars[i] == 'e' || chars[i] == 'E') {
-                // we've already taken care of hex.
-                if (hasExp) {
-                    // two E's
-                    return false;
-                }
-                if (!foundDigit) {
-                    return false;
-                }
-                hasExp = true;
-                allowSigns = true;
-            } else if (chars[i] == '+' || chars[i] == '-') {
-                if (!allowSigns) {
-                    return false;
-                }
-                allowSigns = false;
-                foundDigit = false; // we need a digit after the E
-            } else {
-                return false;
-            }
-            i++;
-        }
-        if (i < chars.length) {
-            if (chars[i] >= '0' && chars[i] <= '9') {
-                // no type qualifier, OK
-                return true;
-            }
-            if (chars[i] == 'e' || chars[i] == 'E') {
-                // can't have an E at the last byte
-                return false;
-            }
-            if (chars[i] == '.') {
-                if (hasDecPoint || hasExp) {
-                    // two decimal points or dec in exponent
-                    return false;
-                }
-                // single trailing decimal point after non-exponent is ok
-                return foundDigit;
-            }
-            if (!allowSigns
-                && (chars[i] == 'd'
-                    || chars[i] == 'D'
-                    || chars[i] == 'f'
-                    || chars[i] == 'F')) {
-                return foundDigit;
-            }
-            if (chars[i] == 'l'
-                || chars[i] == 'L') {
-                // not allowing L with an exponent or decimal point
-                return foundDigit && !hasExp && !hasDecPoint;
-            }
-            // last character is illegal
-            return false;
-        }
-        // allowSigns is true iff the val ends in 'E'
-        // found digit it to make sure weird stuff like '.' and '1E-' doesn't pass
-        return !allowSigns && foundDigit;
-    }
 	
 	public static String removePrefix(String input, String prefix) {
 		if(input == null || prefix == null) {
