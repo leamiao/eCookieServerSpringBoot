@@ -44,7 +44,6 @@ public class BaseEntityController<E extends BaseEntity> {
             int total = 0;
 
             List<E> list = new ArrayList<>();
-            ;
             if (request.getParameter(Constants.START) != null) {
                 startIndex = Integer.parseInt(request.getParameter(Constants.START));
             }

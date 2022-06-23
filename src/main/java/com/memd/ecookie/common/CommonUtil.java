@@ -15,62 +15,13 @@ import java.util.Date;
 import java.util.List;
 
 public class CommonUtil {
-    public static Double normalizePercent(Double percent) {
-        if (percent != null) {
-            return percent * 0.01;
-        }
 
-        return null;
-    }
-
-    public static Double normalizePercentNullZero(Double percent) {
-        if (percent == null) {
-            return 0.0;
-        } else {
-            return percent * 0.01;
-        }
-    }
-
-    public static Double normalizePercentNullZeroWithBothBounds(Double percent) {
-        if (percent == null) {
-            return 0.0;
-        } else if (percent < 0.0) {
-            return 0.0;
-        } else if (percent > 100.0) {
-            return 1.0;
-        }
-
-        return percent * 0.01;
-    }
-
-    public static Double normalizePercentNullOneWithBothBounds(Double percent) {
-        if (percent == null) {
-            return 1.0;
-        } else if (percent < 0.0) {
-            return 0.0;
-        } else if (percent > 100.0) {
-            return 1.0;
-        }
-
-        return percent * 0.01;
-    }
-
-    public static Double normalizePercentNullOne(Double percent) {
-        if (percent == null) {
-            return 1.0;
-        } else {
-            return percent * 0.01;
-        }
-    }
-
-    public static Double normalizePercentPlusOne(Double percent) {
-        if (percent != null) {
-            return 1.0 + percent * 0.01;
-        }
-
-        return null;
-    }
-
+    /**
+     * Trim input.
+     * 
+     * @param input
+     * @return trimmed string.
+     */
     public static String trim(String input) {
         if (input != null) {
             input = input.trim();
@@ -171,22 +122,6 @@ public class CommonUtil {
         }
 
         return false;
-    }
-
-    public static String[] getUnitPair(String unit) {
-        String[] results = new String[2];
-
-        if (unit != null) {
-            String[] splits = unit.split("/");
-            if (splits.length > 0) {
-                results[0] = splits[0];
-            }
-            if (splits.length > 1) {
-                results[1] = splits[1];
-            }
-        }
-
-        return results;
     }
 
     public static String toStringFromObjectArray(Object[] values) {

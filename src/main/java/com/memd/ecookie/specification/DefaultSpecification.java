@@ -12,7 +12,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 
 import com.memd.ecookie.common.SearchParam;
 import com.memd.ecookie.common.SortParam;
@@ -47,6 +49,7 @@ public class DefaultSpecification<T> implements Specification<T> {
         collectSearchTermPredicate(root, query, criteriaBuilder, conditions);
         collectSearchParamsPredicates(root, query, criteriaBuilder, conditions);
 
+        collectSortParamsOrders(root, query, criteriaBuilder, orders);
         if (!orders.isEmpty()) {
             query.orderBy(orders);
         }
@@ -123,5 +126,22 @@ public class DefaultSpecification<T> implements Specification<T> {
         }
 
         conditions.add(criteriaBuilder.like(root.get(searchTermPropertyName), "%" + searchTerm + "%"));
+    }
+    
+    protected void collectSortParamsOrders(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb, List<Order> orders) {
+        if (CollectionUtils.isEmpty(sortParams)) {
+            return;
+        }
+        
+        for (SortParam sortParam : sortParams) {
+            if (sortParam != null && StringUtils.isNotBlank(sortParam.getProperty())
+                && !specialHandledSortSet.contains(sortParam.getProperty())) {
+                if (Sort.Direction.DESC.name().equalsIgnoreCase(sortParam.getDirection())) {
+                    orders.add(cb.desc(root.get(sortParam.getProperty())));
+                } else {
+                    orders.add(cb.asc(root.get(sortParam.getProperty())));
+                }
+            }
+        }
     }
 }

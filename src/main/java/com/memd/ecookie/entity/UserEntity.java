@@ -4,7 +4,10 @@ import java.util.Objects;
 
 import javax.persistence.Entity;
 
-@Entity(name = "users") // This tells Hibernate to make a table out of this class
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Entity(name = "users")
 public class UserEntity extends BaseAuditEntity {
     private static final long serialVersionUID = 8211741030488027929L;
 

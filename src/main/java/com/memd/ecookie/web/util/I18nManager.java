@@ -19,13 +19,7 @@ public class I18nManager {
     private MessageSource messageSource;
 
     public Locale getLocale(HttpServletRequest request) {
-        Locale locale = RequestContextUtils.getLocale(request);
-
-        if (locale == null) {
-            locale = request.getLocale();
-        }
-
-        return locale;
+        return RequestContextUtils.getLocale(request);
     }
 
     public String getString(HttpServletRequest request, String key) {
